@@ -1,4 +1,4 @@
-package br.com.zupacademy.priscila.itau
+package br.com.zupacademy.priscila.integration.itau
 
 import io.micronaut.http.HttpResponse
 import io.micronaut.http.annotation.Get
@@ -7,12 +7,12 @@ import io.micronaut.http.annotation.QueryValue
 import io.micronaut.http.client.annotation.Client
 
 @Client(value = "\${itau.url}")
-interface ErpItauClient {
+interface ItauClient {
 
     @Get("/{clientId}/contas")
-    fun consultaDados(
+    fun buscaContaPorTipo(
         @PathVariable clientId: String,
         @QueryValue tipo: String
-    ): HttpResponse<AccountResponse>
+    ): HttpResponse<DadosDaContaResponse>
 
 }

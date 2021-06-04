@@ -1,4 +1,4 @@
-package br.com.zupacademy.priscila.bcb
+package br.com.zupacademy.priscila.integration
 
 import io.micronaut.http.client.annotation.Client
 
