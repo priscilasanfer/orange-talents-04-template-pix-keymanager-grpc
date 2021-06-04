@@ -45,6 +45,8 @@ dependencies {
     testImplementation("org.testcontainers:postgresql")
     testImplementation("org.testcontainers:testcontainers")
 
+    implementation("io.micronaut:micronaut-http-client")
+
 }
 
 

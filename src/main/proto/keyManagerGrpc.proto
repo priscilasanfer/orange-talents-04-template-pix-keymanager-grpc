@@ -7,14 +7,106 @@ option objc_class_prefix = "HLW";
 
 package br.com.zupacademy.priscila;
 
+import "google/protobuf/timestamp.proto";
+
 service KeyManagerGrpcService {
-  rpc send (KeyManagerGrpcRequest) returns (KeyManagerGrpcReply) {}
+  rpc register (RegisterKeyRequest) returns (RegisterKeyResponse) {}
+  rpc getAccountInfo(GetAccountInfoRequest) returns (GetAccountInfoResponse){}
 }
 
-message KeyManagerGrpcRequest {
-  string name = 1;
+enum ItauAccountType {
+  UNKNOWN_CONTA = 0;
+  CONTA_CORRENTE = 1;
+  CONTA_POUPANCA = 2;
 }
 
-message KeyManagerGrpcReply {
-  string message = 1;
+message GetAccountInfoRequest{
+  string clienteId = 1;
+  ItauAccountType tipo = 2;
+}
+
+message Instituicao {
+  string nome = 1 ;
+  string ispb = 2;
+}
+
+message Titular{
+  string id = 1;
+  string nome = 2;
+  string cpf = 3;
+}
+
+message GetAccountInfoResponse {
+  ItauAccountType tipo = 1;
+  Instituicao instituicao = 2;
+  string  agencia = 3;
+  string numero = 4;
+  Titular titular = 5;
+}
+
+enum AccountType {
+  UNKNOWN_ACCOUNT_TYPE = 0;
+  CACC = 1;
+  SVGS = 2;
+}
+
+enum OwnerType {
+  UNKNOWN_OWNER_TYPE = 0;
+  NATURAL_PERSON = 1;
+  LEGAL_PERSON = 2;
+}
+
+message Owner {
+  OwnerType type = 1;
+  string name = 2;
+  string taxIdNumber = 3;
+}
+
+enum KeyType {
+  UNKNOWN_KEY_TYPE = 0;
+  CPF = 1;
+  CNPJ = 2 ;
+  PHONE = 3;
+  EMAIL = 4;
+  RANDOM = 5;
+}
+
+message BankAccount {
+  string participant = 1;
+  string branch = 2;
+  string accountNumber = 3;
+  AccountType accountType = 4;
+}
+
+message RegisterKeyRequest {
+  KeyType keyType = 1;
+  string key = 2;
+  BankAccount bank_account = 3;
+  Owner owner = 4;
+}
+
+message  RegisterKeyResponse {
+  KeyType keyType = 1;
+  string key = 2;
+  BankAccount bank_account = 3;
+  Owner owner = 4;
+  google.protobuf.Timestamp criadoEm = 5;
+}
+
+message Violations {
+  string field = 1;
+  string message = 2;
+}
+
+message ErrorDetail {
+  string type = 1;
+  int32 status = 2;
+  string title = 3;
+  string detail = 4;
+  Violations violations = 5;
+}
+
+message ErrorDetials{
+  int32 code = 1;
+  string message = 2;
 }
