@@ -16,12 +16,10 @@ import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito
 import org.mockito.Mockito.*
 import java.util.*
 import javax.inject.Inject
@@ -41,10 +39,14 @@ internal class RegistraChaveEndpointTest(
     @field:Inject
     lateinit var itauClient: ItauClient
 
+    companion object{
+        val CLIENT_ID = UUID.randomUUID()
+    }
+
     @Test
     internal fun `deve cadastrar uma nova chave pix email`() {
         val request = RegistraChavePixRequest.newBuilder()
-            .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setClientId(CLIENT_ID.toString())
             .setTipoDeChave(TipoDeChave.EMAIL)
             .setChave("teste@email.com")
             .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
@@ -64,6 +66,7 @@ internal class RegistraChaveEndpointTest(
         val response = grpcClient.registra(request)
 
         with(response) {
+            assertEquals(CLIENT_ID.toString(), clientId)
             assertNotNull(pixId)
             assertTrue(repository.existsByChave(request.chave))
         }
@@ -72,7 +75,7 @@ internal class RegistraChaveEndpointTest(
     @Test
     internal fun `deve cadastrar uma nova chave pix telefone`() {
         val request = RegistraChavePixRequest.newBuilder()
-            .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setClientId(CLIENT_ID.toString())
             .setTipoDeChave(TipoDeChave.PHONE)
             .setChave("+5511336691555")
             .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
@@ -94,13 +97,14 @@ internal class RegistraChaveEndpointTest(
         with(response) {
             assertNotNull(pixId)
             assertTrue(repository.existsByChave(request.chave))
+            assertEquals(CLIENT_ID.toString(), clientId)
         }
     }
 
     @Test
     internal fun `deve cadastrar uma nova chave pix Random`() {
         val request = RegistraChavePixRequest.newBuilder()
-            .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setClientId(CLIENT_ID.toString())
             .setTipoDeChave(TipoDeChave.RANDOM)
             .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
             .build()
@@ -120,6 +124,7 @@ internal class RegistraChaveEndpointTest(
 
         with(response) {
             assertNotNull(pixId)
+            assertEquals(CLIENT_ID.toString(), clientId)
 //            spy(repository).save(any(ChavePix::class.java))
             // TODO veridicar a chave RANDOM que foi gerada
 
@@ -129,7 +134,7 @@ internal class RegistraChaveEndpointTest(
     @Test
     internal fun `deve cadastrar uma nova chave pix cpf`() {
         val request = RegistraChavePixRequest.newBuilder()
-            .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
+            .setClientId(CLIENT_ID.toString())
             .setTipoDeChave(TipoDeChave.CPF)
             .setChave("47927074040")
             .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
@@ -151,6 +156,8 @@ internal class RegistraChaveEndpointTest(
         with(response) {
             assertNotNull(pixId)
             assertTrue(repository.existsByChave(request.chave))
+            assertEquals(CLIENT_ID.toString(), clientId)
+
         }
     }
 
@@ -168,8 +175,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("registra.novaChave: chave Pix invalida", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("registra.novaChave: chave Pix invalida", status.description)
         }
     }
 
@@ -275,13 +282,13 @@ internal class RegistraChaveEndpointTest(
     @Test
     internal fun `nao deve cadastrar uma nova chave pix quando o cliente nao e encontrado no itau`() {
         val request = RegistraChavePixRequest.newBuilder()
-            .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157891")
+            .setClientId(CLIENT_ID.toString())
             .setTipoDeChave(TipoDeChave.EMAIL)
             .setChave("teste@email.com")
             .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
             .build()
 
-        Mockito.`when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
+        `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
             .thenReturn(HttpResponse.notFound())
 
         val error = assertThrows<StatusRuntimeException> {
@@ -289,8 +296,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.FAILED_PRECONDITION.code, status.code)
-            Assertions.assertEquals("Cliente não encontrado no Itaú", status.description)
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Cliente não encontrado no Itaú", status.description)
         }
     }
 
@@ -298,7 +305,7 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com chave ja existente`() {
         val existente = repository.save(
             ChavePix(
-                clientId = UUID.fromString("c56dfef4-7901-44fb-84e2-a2cefb157890"),
+                clientId = CLIENT_ID,
                 tipo = TipoChave.EMAIL,
                 chave = "email@teste.com",
                 tipoDeConta = TipoDeConta.CONTA_CORRENTE,
@@ -319,6 +326,25 @@ internal class RegistraChaveEndpointTest(
             .setChave(existente.chave)
             .build()
 
+        val error = assertThrows<StatusRuntimeException> {
+            grpcClient.registra(request)
+        }
+
+        with(error) {
+            assertEquals(Status.ALREADY_EXISTS.code, status.code)
+            assertEquals("Chave Pix '${existente.chave}' existente", status.description)
+        }
+
+    }
+
+    @Test
+    internal fun `nao deve cadastrar uma nova chave pix quando o itau retornar uma chave UUID em formato invalido`() {
+        val request = RegistraChavePixRequest.newBuilder()
+            .setClientId("c56dfef4790144fb84e2a2cefb157890")
+            .setTipoDeChave(TipoDeChave.RANDOM)
+            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .build()
+
         val dadosDaContaRespose = DadosDaContaResponse(
             tipo = "CONTA_CORRENTE",
             instituicao = InstituicaoResponse("ITAÚ UNIBANCO S.A", "60701190"),
@@ -330,16 +356,14 @@ internal class RegistraChaveEndpointTest(
         `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
             .thenReturn(HttpResponse.ok(dadosDaContaRespose))
 
-
         val error = assertThrows<StatusRuntimeException> {
             grpcClient.registra(request)
         }
 
         with(error) {
-            Assertions.assertEquals(Status.ALREADY_EXISTS.code, status.code)
-            Assertions.assertEquals("Chave Pix '${existente.chave}' existente", status.description)
+            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            Assertions.assertEquals("Invalid UUID string: ${request.clientId}", status.description)
         }
-
     }
 
     @MockBean(ItauClient::class)

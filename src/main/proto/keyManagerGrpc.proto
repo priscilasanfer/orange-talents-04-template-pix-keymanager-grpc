@@ -11,6 +11,8 @@ service KeyManagerRegistraService {
   rpc registra (RegistraChavePixRequest) returns (RegistraChavePixResponse) {}
 }
 
+
+
 enum TipoDeConta {
   UNKNOWN_TIPO_DE_CONTA = 0;
   CONTA_CORRENTE = 1;
