@@ -1,6 +1,7 @@
 package br.com.zupacademy.priscila.pix.register
 
 import br.com.zupacademy.priscila.*
+import br.com.zupacademy.priscila.pix.toModel
 import br.com.zupacademy.priscila.shared.grpc.ErrorHandler
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class RegistraChaveEndpoint(
         responseObserver.onNext(
             RegistraChavePixResponse.newBuilder()
                 .setClientId(chaveCriada.clientId.toString())
-                .setPixId(chaveCriada.id.toString())
+                .setPixId(chaveCriada.pixId.toString())
                 .build()
         )
         responseObserver.onCompleted()

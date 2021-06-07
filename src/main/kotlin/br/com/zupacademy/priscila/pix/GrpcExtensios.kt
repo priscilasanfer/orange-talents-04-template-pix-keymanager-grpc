@@ -1,13 +1,9 @@
-package br.com.zupacademy.priscila.pix.register
+package br.com.zupacademy.priscila.pix
 
-import br.com.zupacademy.priscila.DeletaChavePixRequest
 import br.com.zupacademy.priscila.RegistraChavePixRequest
 import br.com.zupacademy.priscila.TipoDeChave
-
 import br.com.zupacademy.priscila.TipoDeConta
-import br.com.zupacademy.priscila.pix.TipoChave
-import br.com.zupacademy.priscila.pix.deleta.DeletaChaveRequest
-import java.util.*
+import br.com.zupacademy.priscila.pix.register.NovaChavePix
 
 fun RegistraChavePixRequest.toModel(): NovaChavePix {
     return NovaChavePix(
@@ -21,12 +17,5 @@ fun RegistraChavePixRequest.toModel(): NovaChavePix {
             TipoDeConta.UNKNOWN_TIPO_DE_CONTA -> null
             else -> TipoDeConta.valueOf(tipoDeConta.name)
         }
-    )
-}
-
-fun DeletaChavePixRequest.toModel(): DeletaChaveRequest {
-    return DeletaChaveRequest(
-        clientId = UUID.fromString(clientId),
-        pixId = pixId.toLong()
     )
 }

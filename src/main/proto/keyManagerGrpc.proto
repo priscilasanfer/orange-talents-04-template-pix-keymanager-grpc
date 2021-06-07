@@ -52,7 +52,8 @@ message DeletaChavePixRequest{
 }
 
 message DeletaChavePixResponse{
-  string message = 1;
+  string clientId = 1;
+  string pixId = 2;
 }
 
 //Erros
