@@ -11,7 +11,9 @@ service KeyManagerRegistraService {
   rpc registra (RegistraChavePixRequest) returns (RegistraChavePixResponse) {}
 }
 
-
+service KeyManagerDeletaService {
+  rpc deleta (DeletaChavePixRequest) returns (DeletaChavePixResponse) {}
+}
 
 enum TipoDeConta {
   UNKNOWN_TIPO_DE_CONTA = 0;
@@ -40,6 +42,17 @@ message RegistraChavePixRequest {
 message  RegistraChavePixResponse {
   string clientId = 1;
   string pixId = 2;
+}
+
+// Deleta Chave
+
+message DeletaChavePixRequest{
+  string pixId = 1;
+  string clientId = 2;
+}
+
+message DeletaChavePixResponse{
+  string message = 1;
 }
 
 //Erros
