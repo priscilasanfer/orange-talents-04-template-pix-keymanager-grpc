@@ -1,11 +1,17 @@
 package br.com.zupacademy.priscila.pix.register
 
-import br.com.zupacademy.priscila.*
+import br.com.zupacademy.priscila.KeyManagerRegistraServiceGrpc
+import br.com.zupacademy.priscila.RegistraChavePixRequest
+import br.com.zupacademy.priscila.TipoDeChave
+import br.com.zupacademy.priscila.TipoDeConta
 import br.com.zupacademy.priscila.integration.itau.DadosDaContaResponse
 import br.com.zupacademy.priscila.integration.itau.InstituicaoResponse
 import br.com.zupacademy.priscila.integration.itau.ItauClient
 import br.com.zupacademy.priscila.integration.itau.TitularResponse
-import br.com.zupacademy.priscila.pix.*
+import br.com.zupacademy.priscila.pix.ChavePix
+import br.com.zupacademy.priscila.pix.ChavePixRepository
+import br.com.zupacademy.priscila.pix.ContaAssociada
+import br.com.zupacademy.priscila.pix.TipoChave
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -15,12 +21,12 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.*
+import org.mockito.Mockito.`when`
+import org.mockito.Mockito.mock
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -176,7 +182,7 @@ internal class RegistraChaveEndpointTest(
 
         with(error) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            assertEquals("registra.novaChave: chave Pix invalida", status.description)
+            assertEquals("Dados inválidos", status.description)
         }
     }
 
@@ -194,8 +200,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("registra.novaChave: chave Pix invalida", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
         }
     }
 
@@ -213,8 +219,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("registra.novaChave: chave Pix invalida", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
         }
 
     }
@@ -233,8 +239,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("registra.novaChave: chave Pix invalida", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
         }
 
     }
@@ -253,9 +259,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            assertTrue(error.message!!.contains("registra.novaChave: chave Pix invalida"))
-            assertTrue(error.message!!.contains("registra.novaChave.tipo: must not be null"))
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
         }
     }
 
@@ -274,8 +279,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("registra.novaChave.tipoDeConta: must not be null", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Dados inválidos", status.description)
         }
     }
 
@@ -361,8 +366,8 @@ internal class RegistraChaveEndpointTest(
         }
 
         with(error) {
-            Assertions.assertEquals(Status.INVALID_ARGUMENT.code, status.code)
-            Assertions.assertEquals("Invalid UUID string: ${request.clientId}", status.description)
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Invalid UUID string: ${request.clientId}", status.description)
         }
     }
 
