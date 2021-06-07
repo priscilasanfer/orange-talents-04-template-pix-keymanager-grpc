@@ -10,7 +10,7 @@ import javax.inject.Singleton
 @Singleton
 class RegistraChaveEndpoint(
     @Inject private val service: NovaChavePixService
-) : KeyManagerRegistraGrpcServiceGrpc.KeyManagerRegistraGrpcServiceImplBase() {
+) : KeyManagerRegistraServiceGrpc.KeyManagerRegistraServiceImplBase() {
 
     override fun registra(
         request: RegistraChavePixRequest,

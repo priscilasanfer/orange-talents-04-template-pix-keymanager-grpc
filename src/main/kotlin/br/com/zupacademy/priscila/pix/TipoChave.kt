@@ -1,6 +1,5 @@
 package br.com.zupacademy.priscila.pix
 
-import io.micronaut.validation.validator.constraints.EmailValidator
 import org.hibernate.validator.internal.constraintvalidators.hv.br.CPFValidator
 
 enum class TipoChave {
@@ -35,10 +34,7 @@ enum class TipoChave {
             if (chave.isNullOrBlank()) {
                 return false
             }
-            return EmailValidator().run {
-                initialize(null)
-                isValid(chave, null)
-            }
+            return chave.matches("^[a-z0-9.]+@[a-z0-9]+\\.[a-z]+\\.?([a-z]+)?\$".toRegex())
         }
     },
 

@@ -11,7 +11,7 @@ class DefaultExceptionHandler : ExceptionHandler<Exception> {
             is IllegalArgumentException -> Status.INVALID_ARGUMENT.withDescription(e.message)
             is IllegalStateException -> Status.FAILED_PRECONDITION.withDescription(e.message)
             is ConstraintViolationException -> Status.INVALID_ARGUMENT.withDescription(e.message)
-            is ChavePixExistenteException -> Status.NOT_FOUND.withDescription(e.message)
+            is ChavePixExistenteException -> Status.ALREADY_EXISTS.withDescription(e.message)
             else -> Status.UNKNOWN.withDescription(e.message)
         }
         return ExceptionHandler.StatusWithDetails(status.withCause(e))

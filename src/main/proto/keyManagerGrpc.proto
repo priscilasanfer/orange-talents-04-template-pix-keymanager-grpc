@@ -7,7 +7,7 @@ option objc_class_prefix = "HLW";
 
 package br.com.zupacademy.priscila;
 
-service KeyManagerRegistraGrpcService {
+service KeyManagerRegistraService {
   rpc registra (RegistraChavePixRequest) returns (RegistraChavePixResponse) {}
 }
 
