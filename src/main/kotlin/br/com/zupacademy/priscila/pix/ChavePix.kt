@@ -39,7 +39,8 @@ class ChavePix(
     val tipoDeConta: TipoDeConta
 ) {
 
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     val id: Long? = null
 
     val pixId: UUID = UUID.randomUUID()
