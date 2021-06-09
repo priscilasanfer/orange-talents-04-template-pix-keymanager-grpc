@@ -2,7 +2,7 @@ package br.com.zupacademy.priscila.integration.bcb
 
 import java.time.LocalDateTime
 
-class CreatePixKeyResponse(
+data class CreatePixKeyResponse(
     val keyType: String,
     val key: String,
     val bankAccount: BankAccout,

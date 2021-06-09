@@ -7,7 +7,7 @@ data class CreatePixKeyRequest(
     val owner: Owner
 )
 
-class Owner(
+data class Owner(
     val type: OwnerType,
     val name: String,
     val taxIdNumber: String

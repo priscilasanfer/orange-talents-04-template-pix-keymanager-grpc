@@ -35,7 +35,7 @@ data class NovaChavePix(
         return ChavePix(
             clientId = UUID.fromString(this.clientId),
             tipo = TipoChave.valueOf(this.tipo!!.name),
-            chave = if (this.tipo == TipoChave.RANDOM) responseBcb.key else this.chave!!,
+            chave = responseBcb.key,
             tipoDeConta = TipoDeConta.valueOf(this.tipoDeConta!!.name),
             conta = conta
         )
@@ -44,7 +44,7 @@ data class NovaChavePix(
     fun toBcbModel(conta: ContaAssociada): CreatePixKeyRequest {
         return CreatePixKeyRequest(
             keyType = this.tipo.toString(),
-            key = if (this.tipo == TipoChave.RANDOM) "null" else this.chave!!,  // Verificar como mandar nulo em caso de chave Random
+            key = this.chave!!,  // Verificar como mandar nulo em caso de chave Random
             bankAccount = BankAccout(
                 participant = conta.ispb,
                 branch = conta.agencia,

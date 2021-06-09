@@ -3,6 +3,9 @@ package br.com.zupacademy.priscila.pix.deleta
 import br.com.zupacademy.priscila.DeletaChavePixRequest
 import br.com.zupacademy.priscila.KeyManagerDeletaServiceGrpc
 import br.com.zupacademy.priscila.TipoDeConta
+import br.com.zupacademy.priscila.integration.bcb.BcbClient
+import br.com.zupacademy.priscila.integration.bcb.DeletePixKeyRequest
+import br.com.zupacademy.priscila.integration.bcb.DeletePixKeyResponse
 import br.com.zupacademy.priscila.pix.ChavePix
 import br.com.zupacademy.priscila.pix.ChavePixRepository
 import br.com.zupacademy.priscila.pix.ContaAssociada
@@ -13,12 +16,17 @@ import io.grpc.StatusRuntimeException
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.http.HttpResponse
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
+import java.time.LocalDateTime
 import java.util.*
+import javax.inject.Inject
 import javax.inject.Singleton
 
 
@@ -33,10 +41,12 @@ internal class DeletaChaveEndpointTest(
         repository.deleteAll()
     }
 
+    @field:Inject
+    lateinit var bcbClient: BcbClient
+
     companion object {
         val CLIENT_ID = UUID.randomUUID()
         val PIX_ID = UUID.randomUUID()
-
     }
 
     @Test
@@ -63,6 +73,19 @@ internal class DeletaChaveEndpointTest(
             .setPixId(existente.pixId.toString())
             .build()
 
+        val bcbRequest = DeletePixKeyRequest(
+            key = existente.tipoDeConta.toString(),
+            participant = existente.conta.ispb
+        )
+
+        val bcbResponse = DeletePixKeyResponse(
+            key = "email@teste.com",
+            participant = "60701190",
+            deletedAt = LocalDateTime.now()
+        )
+        Mockito.`when`(bcbClient.deletaChavePixBcb(bcbRequest, existente.chave))
+            .thenReturn(HttpResponse.ok(bcbResponse))
+
         val response = grpcClient.deleta(request)
 
         assertEquals(CLIENT_ID.toString(), response.clientId.toString())
@@ -76,9 +99,8 @@ internal class DeletaChaveEndpointTest(
             .setPixId(PIX_ID.toString())
             .build()
 
-
         val error = assertThrows<StatusRuntimeException> {
-           grpcClient.deleta(request)
+            grpcClient.deleta(request)
         }
 
         with(error) {
@@ -119,6 +141,11 @@ internal class DeletaChaveEndpointTest(
             assertEquals(Status.PERMISSION_DENIED.code, status.code)
             assertEquals("Cliente não tem permissão para apagar essa chave", status.description)
         }
+    }
+
+    @MockBean(BcbClient::class)
+    fun bcbClientMock(): BcbClient {
+        return Mockito.mock(BcbClient::class.java)
     }
 
     @Factory
