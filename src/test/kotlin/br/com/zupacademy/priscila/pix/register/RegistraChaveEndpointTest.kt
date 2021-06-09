@@ -610,6 +610,57 @@ internal class RegistraChaveEndpointTest(
 
     }
 
+    @Test
+    internal fun `nao deve cadastrar caso nao seja possivel cadastrar no BCB`() {
+        val request = RegistraChavePixRequest.newBuilder()
+            .setClientId(CLIENT_ID.toString())
+            .setTipoDeChave(TipoDeChave.RANDOM)
+            .setChave("")
+            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .build()
+
+        val dadosDaContaRespose = DadosDaContaResponse(
+            tipo = "CONTA_POUPANCA",
+            instituicao = InstituicaoResponse("ITAÚ UNIBANCO S.A", "60701190"),
+            agencia = "0001",
+            numero = "291900",
+            titular = TitularResponse("Rafael M C Ponte", "02467781054")
+        )
+
+        val bcbRequest = CreatePixKeyRequest(
+            keyType = "RANDOM",
+            key = "",
+            bankAccount = BankAccout(
+                participant = "60701190",
+                branch = "0001",
+                accountNumber = "291900",
+                accountType = AccountType.SVGS
+            ),
+            owner = Owner(
+                type = OwnerType.NATURAL_PERSON,
+                name = "Rafael M C Ponte",
+                taxIdNumber = "02467781054"
+            )
+        )
+
+        `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
+            .thenReturn(HttpResponse.ok(dadosDaContaRespose))
+
+        `when`(bcbClient.cadastraChaveBcb(bcbRequest))
+            .thenReturn(HttpResponse.badRequest())
+
+        val error = assertThrows<StatusRuntimeException> {
+            grpcClient.registra(request)
+        }
+
+        with(error) {
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Não foi possivel cadastrar chave no BCB", status.description)
+        }
+
+
+    }
+
     @MockBean(ItauClient::class)
     fun itauClientMock(): ItauClient {
         return mock(ItauClient::class.java)

@@ -143,6 +143,49 @@ internal class DeletaChaveEndpointTest(
         }
     }
 
+    @Test
+    internal fun `deve lancar excecao quando possivel remover chave no bcb`() {
+        val existente = repository.save(
+            ChavePix(
+                clientId = CLIENT_ID,
+                tipo = TipoChave.EMAIL,
+                chave = "email@teste.com",
+                tipoDeConta = TipoDeConta.CONTA_CORRENTE,
+                conta = ContaAssociada(
+                    instituicao = "ITAÚ UNIBANCO S.A",
+                    nomeDoTitular = "Rafael M C Ponte",
+                    cpfDoTitular = "02467781054",
+                    agencia = "0001",
+                    numeroDaConta = "291900",
+                    ispb = "60701190"
+                )
+            )
+        )
+
+        val request = DeletaChavePixRequest.newBuilder()
+            .setClientId(CLIENT_ID.toString())
+            .setPixId(existente.pixId.toString())
+            .build()
+
+        val bcbRequest = DeletePixKeyRequest(
+            key = existente.tipoDeConta.toString(),
+            participant = existente.conta.ispb
+        )
+
+        Mockito.`when`(bcbClient.deletaChavePixBcb(bcbRequest, existente.chave))
+            .thenReturn(HttpResponse.unprocessableEntity())
+
+
+        val error = assertThrows<StatusRuntimeException> {
+            grpcClient.deleta(request)
+        }
+
+        with(error) {
+            assertEquals(Status.FAILED_PRECONDITION.code, status.code)
+            assertEquals("Falha na remoção de chave no BCB", status.description)
+        }
+    }
+
     @MockBean(BcbClient::class)
     fun bcbClientMock(): BcbClient {
         return Mockito.mock(BcbClient::class.java)
