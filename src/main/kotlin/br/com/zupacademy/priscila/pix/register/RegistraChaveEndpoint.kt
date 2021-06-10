@@ -1,7 +1,6 @@
 package br.com.zupacademy.priscila.pix.register
 
 import br.com.zupacademy.priscila.*
-import br.com.zupacademy.priscila.pix.toModel
 import br.com.zupacademy.priscila.shared.grpc.ErrorHandler
 import io.grpc.stub.StreamObserver
 import javax.inject.Inject

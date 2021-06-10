@@ -2,17 +2,12 @@ package br.com.zupacademy.priscila.pix.register
 
 import br.com.zupacademy.priscila.KeyManagerRegistraServiceGrpc
 import br.com.zupacademy.priscila.RegistraChavePixRequest
-import br.com.zupacademy.priscila.TipoDeChave
-import br.com.zupacademy.priscila.TipoDeConta
 import br.com.zupacademy.priscila.integration.bcb.*
 import br.com.zupacademy.priscila.integration.itau.DadosDaContaResponse
 import br.com.zupacademy.priscila.integration.itau.InstituicaoResponse
 import br.com.zupacademy.priscila.integration.itau.ItauClient
 import br.com.zupacademy.priscila.integration.itau.TitularResponse
-import br.com.zupacademy.priscila.pix.ChavePix
-import br.com.zupacademy.priscila.pix.ChavePixRepository
-import br.com.zupacademy.priscila.pix.ContaAssociada
-import br.com.zupacademy.priscila.pix.TipoChave
+import br.com.zupacademy.priscila.pix.*
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -58,46 +53,38 @@ internal class RegistraChaveEndpointTest(
     internal fun `deve cadastrar uma nova chave pix email`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.EMAIL)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
             .setChave("teste@email.com")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
-        val dadosDaContaRespose = DadosDaContaResponse(
-            tipo = "CONTA_CORRENTE",
-            instituicao = InstituicaoResponse("ITAÚ UNIBANCO S.A", "60701190"),
-            agencia = "0001",
-            numero = "291900",
-            titular = TitularResponse("Rafael M C Ponte", "02467781054")
-        )
-
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "EMAIL",
+            keyType = PixKeyType.EMAIL,
             key = "teste@email.com",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.CACC
+                accountType = BankAccount.AccountType.CACC
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
         )
 
         val bcbResponse = CreatePixKeyResponse(
-            keyType = "EMAIL",
+            keyType = PixKeyType.EMAIL,
             key = "teste@email.com",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.CACC
+                accountType = BankAccount.AccountType.CACC
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             ),
@@ -105,7 +92,7 @@ internal class RegistraChaveEndpointTest(
         )
 
         `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
-            .thenReturn(HttpResponse.ok(dadosDaContaRespose))
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
 
         `when`(bcbClient.cadastraChaveBcb(bcbRequest))
             .thenReturn(HttpResponse.created(bcbResponse))
@@ -123,9 +110,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `deve cadastrar uma nova chave pix telefone`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.PHONE)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.PHONE)
             .setChave("+5511336691555")
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
         val dadosDaContaRespose = DadosDaContaResponse(
@@ -137,32 +124,32 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "PHONE",
+            keyType = PixKeyType.PHONE,
             key = "+5511336691555",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
         )
 
         val bcbResponse = CreatePixKeyResponse(
-            keyType = "PHONE",
+            keyType = PixKeyType.PHONE,
             key = "+5511336691555",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             ),
@@ -185,79 +172,12 @@ internal class RegistraChaveEndpointTest(
     }
 
     @Test
-    internal fun `deve cadastrar uma nova chave pix Random`() {
-        val request = RegistraChavePixRequest.newBuilder()
-            .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.RANDOM)
-            .setChave("")
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
-            .build()
-
-        val dadosDaContaRespose = DadosDaContaResponse(
-            tipo = "CONTA_POUPANCA",
-            instituicao = InstituicaoResponse("ITAÚ UNIBANCO S.A", "60701190"),
-            agencia = "0001",
-            numero = "291900",
-            titular = TitularResponse("Rafael M C Ponte", "02467781054")
-        )
-
-        val bcbRequest = CreatePixKeyRequest(
-            keyType = "RANDOM",
-            key = "",
-            bankAccount = BankAccout(
-                participant = "60701190",
-                branch = "0001",
-                accountNumber = "291900",
-                accountType = AccountType.SVGS
-            ),
-            owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
-                name = "Rafael M C Ponte",
-                taxIdNumber = "02467781054"
-            )
-        )
-
-        val bcbResponse = CreatePixKeyResponse(
-            keyType = "RANDOM",
-            key = UUID.randomUUID().toString(),
-            bankAccount = BankAccout(
-                participant = "60701190",
-                branch = "0001",
-                accountNumber = "291900",
-                accountType = AccountType.SVGS
-            ),
-            owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
-                name = "Rafael M C Ponte",
-                taxIdNumber = "02467781054"
-            ),
-            createdAt = LocalDateTime.now()
-        )
-
-        `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
-            .thenReturn(HttpResponse.ok(dadosDaContaRespose))
-
-        `when`(bcbClient.cadastraChaveBcb(bcbRequest))
-            .thenReturn(HttpResponse.created(bcbResponse))
-
-        val response = grpcClient.registra(request)
-
-        with(response) {
-            assertNotNull(pixId)
-            assertEquals(CLIENT_ID.toString(), clientId)
-//            spy(repository).save(any(ChavePix::class.java))
-            // TODO veridicar a chave RANDOM que foi gerada
-
-        }
-    }
-
-    @Test
     internal fun `deve cadastrar uma nova chave pix cpf`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.CPF)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.CPF)
             .setChave("47927074040")
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
         val dadosDaContaRespose = DadosDaContaResponse(
@@ -269,32 +189,32 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "CPF",
+            keyType = PixKeyType.CPF,
             key = "47927074040",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
         )
 
         val bcbResponse = CreatePixKeyResponse(
-            keyType = "CPF",
+            keyType = PixKeyType.CPF,
             key = "47927074040",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             ),
@@ -321,9 +241,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com email errado`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.EMAIL)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
             .setChave("testeemail.com")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -340,9 +260,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com cpf errado`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.CPF)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.CPF)
             .setChave("123456789")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -359,9 +279,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com telefone errado`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.PHONE)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.PHONE)
             .setChave("11852658")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -379,9 +299,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix preenchida quando o tipo for random`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.RANDOM)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
             .setChave("11852658")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -399,9 +319,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com tipo de chave for invalida`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.UNKNOWN_TIPO_CHAVE)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.UNKNOWN_TIPO_CHAVE)
             .setChave("11852658")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -418,9 +338,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix com tipo de conta for invalida`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4-7901-44fb-84e2-a2cefb157890")
-            .setTipoDeChave(TipoDeChave.EMAIL)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
             .setChave("teste@email.com")
-            .setTipoDeConta(TipoDeConta.UNKNOWN_TIPO_DE_CONTA)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.UNKNOWN_TIPO_DE_CONTA)
             .build()
 
 
@@ -438,9 +358,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix quando o cliente nao e encontrado no itau`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.EMAIL)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
             .setChave("teste@email.com")
-            .setTipoDeConta(TipoDeConta.CONTA_CORRENTE)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
         `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
@@ -461,7 +381,7 @@ internal class RegistraChaveEndpointTest(
         val existente = repository.save(
             ChavePix(
                 clientId = CLIENT_ID,
-                tipo = TipoChave.EMAIL,
+                tipo = TipoDeChave.EMAIL,
                 chave = "email@teste.com",
                 tipoDeConta = TipoDeConta.CONTA_CORRENTE,
                 conta = ContaAssociada(
@@ -469,16 +389,15 @@ internal class RegistraChaveEndpointTest(
                     nomeDoTitular = "Rafael M C Ponte",
                     cpfDoTitular = "02467781054",
                     agencia = "0001",
-                    numeroDaConta = "291900",
-                    ispb = "60701190"
+                    numeroDaConta = "291900"
                 )
             )
         )
 
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(existente.clientId.toString())
-            .setTipoDeChave(TipoDeChave.EMAIL)
-            .setTipoDeConta(existente.tipoDeConta)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .setChave(existente.chave)
             .build()
 
@@ -497,8 +416,8 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar uma nova chave pix quando o itau retornar uma chave UUID em formato invalido`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId("c56dfef4790144fb84e2a2cefb157890")
-            .setTipoDeChave(TipoDeChave.RANDOM)
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
         val dadosDaContaRespose = DadosDaContaResponse(
@@ -510,32 +429,32 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "RANDOM",
+            keyType = PixKeyType.RANDOM,
             key = "",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
         )
 
         val bcbResponse = CreatePixKeyResponse(
-            keyType = "RANDOM",
+            keyType = PixKeyType.RANDOM,
             key = UUID.randomUUID().toString(),
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             ),
@@ -563,9 +482,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar caso a chave ja exista no bcb`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.RANDOM)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
             .setChave("")
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
         val dadosDaContaRespose = DadosDaContaResponse(
@@ -577,16 +496,16 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "RANDOM",
+            keyType = PixKeyType.RANDOM,
             key = "",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
@@ -614,9 +533,9 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar caso nao seja possivel cadastrar no BCB`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(TipoDeChave.RANDOM)
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
             .setChave("")
-            .setTipoDeConta(TipoDeConta.CONTA_POUPANCA)
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
         val dadosDaContaRespose = DadosDaContaResponse(
@@ -628,16 +547,16 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = "RANDOM",
+            keyType = PixKeyType.RANDOM,
             key = "",
-            bankAccount = BankAccout(
+            bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
                 accountNumber = "291900",
-                accountType = AccountType.SVGS
+                accountType = BankAccount.AccountType.SVGS
             ),
             owner = Owner(
-                type = OwnerType.NATURAL_PERSON,
+                type = Owner.OwnerType.NATURAL_PERSON,
                 name = "Rafael M C Ponte",
                 taxIdNumber = "02467781054"
             )
@@ -661,6 +580,65 @@ internal class RegistraChaveEndpointTest(
 
     }
 
+    @Test
+    internal fun `deve cadastrar uma nova chave pix Random`() {
+        val request = RegistraChavePixRequest.newBuilder()
+            .setClientId(CLIENT_ID.toString())
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
+            .setChave("")
+            .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
+            .build()
+
+        val bcbRequest = CreatePixKeyRequest(
+            keyType = PixKeyType.RANDOM,
+            key = UUID.randomUUID().toString(),
+            bankAccount = BankAccount(
+                participant = ContaAssociada.ITAU_UNIBANCO_ISPB,
+                branch = "0001",
+                accountNumber = "291900",
+                accountType = BankAccount.AccountType.SVGS
+            ),
+            owner = Owner(
+                type = Owner.OwnerType.NATURAL_PERSON,
+                name = "Rafael M C Ponte",
+                taxIdNumber = "02467781054"
+            )
+        )
+
+        val bcbResponse = CreatePixKeyResponse(
+            keyType = PixKeyType.RANDOM,
+            key = UUID.randomUUID().toString(),
+            bankAccount = BankAccount(
+                participant = ContaAssociada.ITAU_UNIBANCO_ISPB,
+                branch = "0001",
+                accountNumber = "291900",
+                accountType = BankAccount.AccountType.SVGS
+            ),
+            owner = Owner(
+                type = Owner.OwnerType.NATURAL_PERSON,
+                name = "Rafael M C Ponte",
+                taxIdNumber = "02467781054"
+            ),
+            createdAt = LocalDateTime.now()
+        )
+
+        `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
+            .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
+
+        `when`(bcbClient.cadastraChaveBcb(bcbRequest))
+            .thenReturn(HttpResponse.created(bcbResponse))
+
+        val response = grpcClient.registra(request)
+
+        with(response) {
+            assertNotNull(pixId)
+            assertEquals(CLIENT_ID.toString(), clientId)
+//            spy(repository).save(any(ChavePix::class.java))
+            // TODO veridicar a chave RANDOM que foi gerada
+
+        }
+    }
+
     @MockBean(ItauClient::class)
     fun itauClientMock(): ItauClient {
         return mock(ItauClient::class.java)
@@ -680,8 +658,14 @@ internal class RegistraChaveEndpointTest(
             return KeyManagerRegistraServiceGrpc.newBlockingStub(channel)
         }
     }
+
+    private fun dadosDaContaResponse(): DadosDaContaResponse {
+        return DadosDaContaResponse(
+            tipo = "CONTA_CORRENTE",
+            instituicao = InstituicaoResponse("ITAÚ UNIBANCO S.A", ContaAssociada.ITAU_UNIBANCO_ISPB),
+            agencia = "0001",
+            numero = "291900",
+            titular = TitularResponse("Rafael M C Ponte", "02467781054")
+        )
+    }
 }
-
-
-
-

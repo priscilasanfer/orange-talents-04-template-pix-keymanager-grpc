@@ -2,14 +2,10 @@ package br.com.zupacademy.priscila.pix.deleta
 
 import br.com.zupacademy.priscila.DeletaChavePixRequest
 import br.com.zupacademy.priscila.KeyManagerDeletaServiceGrpc
-import br.com.zupacademy.priscila.TipoDeConta
 import br.com.zupacademy.priscila.integration.bcb.BcbClient
 import br.com.zupacademy.priscila.integration.bcb.DeletePixKeyRequest
 import br.com.zupacademy.priscila.integration.bcb.DeletePixKeyResponse
-import br.com.zupacademy.priscila.pix.ChavePix
-import br.com.zupacademy.priscila.pix.ChavePixRepository
-import br.com.zupacademy.priscila.pix.ContaAssociada
-import br.com.zupacademy.priscila.pix.TipoChave
+import br.com.zupacademy.priscila.pix.*
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -19,11 +15,13 @@ import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.http.HttpResponse
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
+import org.mockito.Mockito.`when`
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
@@ -36,67 +34,61 @@ internal class DeletaChaveEndpointTest(
     val grpcClient: KeyManagerDeletaServiceGrpc.KeyManagerDeletaServiceBlockingStub
 ) {
 
-    @BeforeEach
-    internal fun setUp() {
-        repository.deleteAll()
-    }
-
     @field:Inject
     lateinit var bcbClient: BcbClient
 
-    companion object {
-        val CLIENT_ID = UUID.randomUUID()
-        val PIX_ID = UUID.randomUUID()
+    lateinit var CHAVE_EXISTENTE: ChavePix
+
+    @BeforeEach
+    fun setup() {
+        CHAVE_EXISTENTE = repository.save(
+            chave(
+                tipo = TipoDeChave.EMAIL,
+                chave = "rponte@gmail.com",
+                clienteId = UUID.randomUUID()
+            )
+        )
+    }
+
+    @AfterEach
+    fun cleanUp() {
+        repository.deleteAll()
     }
 
     @Test
     internal fun `deve deletar uma chave pix existente`() {
-        val existente = repository.save(
-            ChavePix(
-                clientId = CLIENT_ID,
-                tipo = TipoChave.EMAIL,
-                chave = "email@teste.com",
-                tipoDeConta = TipoDeConta.CONTA_CORRENTE,
-                conta = ContaAssociada(
-                    instituicao = "ITAÚ UNIBANCO S.A",
-                    nomeDoTitular = "Rafael M C Ponte",
-                    cpfDoTitular = "02467781054",
-                    agencia = "0001",
-                    numeroDaConta = "291900",
-                    ispb = "60701190"
-                )
-            )
-        )
-
         val request = DeletaChavePixRequest.newBuilder()
-            .setClientId(CLIENT_ID.toString())
-            .setPixId(existente.pixId.toString())
+            .setClientId(CHAVE_EXISTENTE.clientId.toString())
+            .setPixId(CHAVE_EXISTENTE.pixId.toString())
             .build()
-
-        val bcbRequest = DeletePixKeyRequest(
-            key = existente.tipoDeConta.toString(),
-            participant = existente.conta.ispb
-        )
 
         val bcbResponse = DeletePixKeyResponse(
             key = "email@teste.com",
             participant = "60701190",
             deletedAt = LocalDateTime.now()
         )
-        Mockito.`when`(bcbClient.deletaChavePixBcb(bcbRequest, existente.chave))
+        `when`(
+            bcbClient.deletaChavePixBcb(
+                DeletePixKeyRequest(
+                    key = "rponte@gmail.com"
+                ), "rponte@gmail.com"
+            )
+        )
             .thenReturn(HttpResponse.ok(bcbResponse))
 
         val response = grpcClient.deleta(request)
 
-        assertEquals(CLIENT_ID.toString(), response.clientId.toString())
-        assertFalse(repository.existsByChave(existente.pixId.toString()))
+        assertEquals(CHAVE_EXISTENTE.clientId.toString(), response.clientId.toString())
+        assertFalse(repository.existsByChave(CHAVE_EXISTENTE.pixId.toString()))
     }
 
     @Test
     internal fun `deve lancar excecao quando a chave nao existir`() {
+        val randomUUID = UUID.randomUUID().toString()
+
         val request = DeletaChavePixRequest.newBuilder()
-            .setClientId(CLIENT_ID.toString())
-            .setPixId(PIX_ID.toString())
+            .setClientId(CHAVE_EXISTENTE.clientId.toString())
+            .setPixId(randomUUID)
             .build()
 
         val error = assertThrows<StatusRuntimeException> {
@@ -105,7 +97,7 @@ internal class DeletaChaveEndpointTest(
 
         with(error) {
             assertEquals(Status.NOT_FOUND.code, status.code)
-            assertEquals("Chave Pix '${PIX_ID}' não existe", status.description)
+            assertEquals("Chave Pix '${randomUUID}' não existe", status.description)
         }
     }
 
@@ -113,8 +105,8 @@ internal class DeletaChaveEndpointTest(
     internal fun `deve lancar excecao quando nao for o dono da chave que tenta excluir a chave`() {
         val existente = repository.save(
             ChavePix(
-                clientId = CLIENT_ID,
-                tipo = TipoChave.EMAIL,
+                clientId = CHAVE_EXISTENTE.clientId,
+                tipo = TipoDeChave.EMAIL,
                 chave = "email@teste.com",
                 tipoDeConta = TipoDeConta.CONTA_CORRENTE,
                 conta = ContaAssociada(
@@ -122,8 +114,7 @@ internal class DeletaChaveEndpointTest(
                     nomeDoTitular = "Rafael M C Ponte",
                     cpfDoTitular = "02467781054",
                     agencia = "0001",
-                    numeroDaConta = "291900",
-                    ispb = "60701190"
+                    numeroDaConta = "291900"
                 )
             )
         )
@@ -145,34 +136,18 @@ internal class DeletaChaveEndpointTest(
 
     @Test
     internal fun `deve lancar excecao quando possivel remover chave no bcb`() {
-        val existente = repository.save(
-            ChavePix(
-                clientId = CLIENT_ID,
-                tipo = TipoChave.EMAIL,
-                chave = "email@teste.com",
-                tipoDeConta = TipoDeConta.CONTA_CORRENTE,
-                conta = ContaAssociada(
-                    instituicao = "ITAÚ UNIBANCO S.A",
-                    nomeDoTitular = "Rafael M C Ponte",
-                    cpfDoTitular = "02467781054",
-                    agencia = "0001",
-                    numeroDaConta = "291900",
-                    ispb = "60701190"
-                )
-            )
-        )
-
         val request = DeletaChavePixRequest.newBuilder()
-            .setClientId(CLIENT_ID.toString())
-            .setPixId(existente.pixId.toString())
+            .setClientId(CHAVE_EXISTENTE.clientId.toString())
+            .setPixId(CHAVE_EXISTENTE.pixId.toString())
             .build()
 
-        val bcbRequest = DeletePixKeyRequest(
-            key = existente.tipoDeConta.toString(),
-            participant = existente.conta.ispb
+        `when`(
+            bcbClient.deletaChavePixBcb(
+                DeletePixKeyRequest(
+                    key = "rponte@gmail.com"
+                ), "rponte@gmail.com"
+            )
         )
-
-        Mockito.`when`(bcbClient.deletaChavePixBcb(bcbRequest, existente.chave))
             .thenReturn(HttpResponse.unprocessableEntity())
 
 
@@ -200,4 +175,26 @@ internal class DeletaChaveEndpointTest(
             return KeyManagerDeletaServiceGrpc.newBlockingStub(channel)
         }
     }
+
+
+    private fun chave(
+        tipo: TipoDeChave,
+        chave: String = UUID.randomUUID().toString(),
+        clienteId: UUID = UUID.randomUUID(),
+    ): ChavePix {
+        return ChavePix(
+            clientId = clienteId,
+            tipo = tipo,
+            chave = chave,
+            tipoDeConta = TipoDeConta.CONTA_CORRENTE,
+            conta = ContaAssociada(
+                instituicao = "UNIBANCO ITAU",
+                nomeDoTitular = "Rafael Ponte",
+                cpfDoTitular = "12345678900",
+                agencia = "1218",
+                numeroDaConta = "123456"
+            )
+        )
+    }
+
 }

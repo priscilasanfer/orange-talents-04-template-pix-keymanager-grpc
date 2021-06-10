@@ -1,6 +1,7 @@
 package br.com.zupacademy.priscila.pix.register
 
 import br.com.zupacademy.priscila.integration.bcb.BcbClient
+import br.com.zupacademy.priscila.integration.bcb.CreatePixKeyRequest
 import br.com.zupacademy.priscila.integration.itau.ItauClient
 import br.com.zupacademy.priscila.pix.ChavePix
 import br.com.zupacademy.priscila.pix.ChavePixExistenteException
@@ -40,15 +41,17 @@ class NovaChavePixService(
 
         val conta = responseItau.body()!!.toModel()
 
-        // 3 Registra a Chave Globalmente no BCB
-        val responseBcb = bcbClient.cadastraChaveBcb(novaChave.toBcbModel(conta))
-        check(responseBcb.status != HttpStatus.UNPROCESSABLE_ENTITY) { "Chave Pix já cadastrada no BCB" }
-        check(responseBcb.status == HttpStatus.CREATED) { "Não foi possivel cadastrar chave no BCB" }
+        val chave = novaChave.toModel(conta)
+        repository.save(chave)
 
-        // 4 Grava no banco de dados
-        val chave = novaChave.toModel(conta, responseBcb.body()!!)
+        // 3 Registra a Chave Globalmente no BCB
+        val bcbResponse = bcbClient.cadastraChaveBcb(CreatePixKeyRequest.of(chave)) // 1
+        check(bcbResponse.status != HttpStatus.UNPROCESSABLE_ENTITY) { "Chave Pix já cadastrada no BCB" }
+        check(bcbResponse.status == HttpStatus.CREATED) { "Não foi possivel cadastrar chave no BCB" }
 
         repository.save(chave)
+
+        chave.atualiza(bcbResponse.body()!!.key)
 
         return chave
     }
