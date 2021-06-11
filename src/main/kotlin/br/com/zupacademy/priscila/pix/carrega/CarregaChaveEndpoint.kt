@@ -2,7 +2,7 @@ package br.com.zupacademy.priscila.pix.carrega
 
 import br.com.zupacademy.priscila.CarregaChavePixRequest
 import br.com.zupacademy.priscila.CarregaChavePixResponse
-import br.com.zupacademy.priscila.KeymanagerCarregaGrpcServiceGrpc
+import br.com.zupacademy.priscila.KeymanagerCarregaServiceGrpc
 import br.com.zupacademy.priscila.integration.bcb.BcbClient
 import br.com.zupacademy.priscila.pix.ChavePixRepository
 import br.com.zupacademy.priscila.shared.grpc.ErrorHandler
@@ -17,7 +17,7 @@ class CarregaChaveEndpoint(
     @Inject private val repository: ChavePixRepository, // 1
     @Inject private val bcbClient: BcbClient, // 1
     @Inject private val validator: Validator,
-) : KeymanagerCarregaGrpcServiceGrpc.KeymanagerCarregaGrpcServiceImplBase() {
+) : KeymanagerCarregaServiceGrpc.KeymanagerCarregaServiceImplBase() {
 
     override fun carrega(
         request: CarregaChavePixRequest,

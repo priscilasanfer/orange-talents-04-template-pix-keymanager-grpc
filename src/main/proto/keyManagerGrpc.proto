@@ -17,11 +17,11 @@ service KeyManagerDeletaService {
   rpc deleta (DeletaChavePixRequest) returns (DeletaChavePixResponse) {}
 }
 
-service KeymanagerCarregaGrpcService {
+service KeymanagerCarregaService {
   rpc carrega (CarregaChavePixRequest) returns (CarregaChavePixResponse) {}
 }
 
-service KeymanagerListaGrpcService {
+service KeymanagerListaService {
   rpc lista(ListaChavesPixRequest) returns (ListaChavesPixResponse) {}
 }
 

@@ -5,7 +5,6 @@ import br.com.zupacademy.priscila.pix.ChavePixRepository
 import br.com.zupacademy.priscila.shared.grpc.ErrorHandler
 import com.google.protobuf.Timestamp
 import io.grpc.stub.StreamObserver
-import java.lang.IllegalArgumentException
 import java.time.ZoneId
 import java.util.*
 import javax.inject.Inject
@@ -14,7 +13,7 @@ import javax.inject.Singleton
 @ErrorHandler
 @Singleton
 class ListaChaveEndpoint(@Inject private val repository: ChavePixRepository) :
-    KeymanagerListaGrpcServiceGrpc.KeymanagerListaGrpcServiceImplBase() {
+    KeymanagerListaServiceGrpc.KeymanagerListaServiceImplBase() {
 
     override fun lista(
         request: ListaChavesPixRequest,

@@ -1,14 +1,14 @@
 package br.com.zupacademy.priscila.pix.carrega
 
-import br.com.zupacademy.priscila.util.violations
 import br.com.zupacademy.priscila.CarregaChavePixRequest
-import br.com.zupacademy.priscila.KeymanagerCarregaGrpcServiceGrpc
+import br.com.zupacademy.priscila.KeymanagerCarregaServiceGrpc
 import br.com.zupacademy.priscila.integration.bcb.BankAccount
 import br.com.zupacademy.priscila.integration.bcb.BcbClient
 import br.com.zupacademy.priscila.integration.bcb.Owner
 import br.com.zupacademy.priscila.integration.bcb.PixKeyDetailsResponse
 import br.com.zupacademy.priscila.integration.bcb.PixKeyType.*
 import br.com.zupacademy.priscila.pix.*
+import br.com.zupacademy.priscila.util.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
@@ -36,7 +36,7 @@ import javax.inject.Inject
 @MicronautTest(transactional = false)
 internal class CarregaChaveEndpointTest(
     val repository: ChavePixRepository,
-    val grpcClient: KeymanagerCarregaGrpcServiceGrpc.KeymanagerCarregaGrpcServiceBlockingStub,
+    val grpcClient: KeymanagerCarregaServiceGrpc.KeymanagerCarregaServiceBlockingStub,
 ) {
 
     @Inject
@@ -252,8 +252,8 @@ internal class CarregaChaveEndpointTest(
     @Factory
     class Clients {
         @Bean
-        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerCarregaGrpcServiceGrpc.KeymanagerCarregaGrpcServiceBlockingStub? {
-            return KeymanagerCarregaGrpcServiceGrpc.newBlockingStub(channel)
+        fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel): KeymanagerCarregaServiceGrpc.KeymanagerCarregaServiceBlockingStub? {
+            return KeymanagerCarregaServiceGrpc.newBlockingStub(channel)
         }
     }
 
