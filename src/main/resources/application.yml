@@ -10,7 +10,7 @@ grpc:
 
 datasources:
   default:
-    url: jdbc:postgresql://localhost:5433/keymanager
+    url: jdbc:postgresql://localhost:5432/keymanager
     driverClassName: org.postgresql.Driver
     username: postgres
     password: root
