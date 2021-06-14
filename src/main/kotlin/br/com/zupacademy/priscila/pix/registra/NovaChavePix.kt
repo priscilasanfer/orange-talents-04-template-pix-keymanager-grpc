@@ -1,4 +1,4 @@
-package br.com.zupacademy.priscila.pix.register
+package br.com.zupacademy.priscila.pix.registra
 
 import br.com.zupacademy.priscila.integration.bcb.*
 import br.com.zupacademy.priscila.integration.bcb.BankAccount.*

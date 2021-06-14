@@ -1,4 +1,4 @@
-package br.com.zupacademy.priscila.pix.register
+package br.com.zupacademy.priscila.pix.registra
 
 import br.com.zupacademy.priscila.RegistraChavePixRequest
 import br.com.zupacademy.priscila.TipoDeChave.UNKNOWN_TIPO_CHAVE

@@ -1,6 +1,6 @@
 package br.com.zupacademy.priscila.shared.validation
 
-import br.com.zupacademy.priscila.pix.register.NovaChavePix
+import br.com.zupacademy.priscila.pix.registra.NovaChavePix
 import io.micronaut.core.annotation.AnnotationValue
 import io.micronaut.validation.validator.constraints.ConstraintValidator
 import io.micronaut.validation.validator.constraints.ConstraintValidatorContext
