@@ -1,4 +1,4 @@
-package br.com.zupacademy.priscila.pix.register
+package br.com.zupacademy.priscila.pix.registra
 
 import br.com.zupacademy.priscila.KeyManagerRegistraServiceGrpc
 import br.com.zupacademy.priscila.RegistraChavePixRequest
@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito.`when`
 import org.mockito.Mockito.mock
+import org.mockito.kotlin.any
 import java.time.LocalDateTime
 import java.util.*
 import javax.inject.Inject
@@ -482,8 +483,8 @@ internal class RegistraChaveEndpointTest(
     internal fun `nao deve cadastrar caso a chave ja exista no bcb`() {
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
-            .setChave("")
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
+            .setChave("email@teste.com")
             .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
@@ -496,8 +497,8 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = PixKeyType.RANDOM,
-            key = "",
+            keyType = PixKeyType.EMAIL,
+            key = "email@teste.com" ,
             bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
@@ -531,10 +532,11 @@ internal class RegistraChaveEndpointTest(
 
     @Test
     internal fun `nao deve cadastrar caso nao seja possivel cadastrar no BCB`() {
+
         val request = RegistraChavePixRequest.newBuilder()
             .setClientId(CLIENT_ID.toString())
-            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.RANDOM)
-            .setChave("")
+            .setTipoDeChave(br.com.zupacademy.priscila.TipoDeChave.EMAIL)
+            .setChave("teste@gmail.com")
             .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_POUPANCA)
             .build()
 
@@ -547,8 +549,8 @@ internal class RegistraChaveEndpointTest(
         )
 
         val bcbRequest = CreatePixKeyRequest(
-            keyType = PixKeyType.RANDOM,
-            key = "",
+            keyType = PixKeyType.EMAIL,
+            key = "teste@gmail.com",
             bankAccount = BankAccount(
                 participant = "60701190",
                 branch = "0001",
@@ -589,22 +591,6 @@ internal class RegistraChaveEndpointTest(
             .setTipoDeConta(br.com.zupacademy.priscila.TipoDeConta.CONTA_CORRENTE)
             .build()
 
-        val bcbRequest = CreatePixKeyRequest(
-            keyType = PixKeyType.RANDOM,
-            key = UUID.randomUUID().toString(),
-            bankAccount = BankAccount(
-                participant = ContaAssociada.ITAU_UNIBANCO_ISPB,
-                branch = "0001",
-                accountNumber = "291900",
-                accountType = BankAccount.AccountType.SVGS
-            ),
-            owner = Owner(
-                type = Owner.OwnerType.NATURAL_PERSON,
-                name = "Rafael M C Ponte",
-                taxIdNumber = "02467781054"
-            )
-        )
-
         val bcbResponse = CreatePixKeyResponse(
             keyType = PixKeyType.RANDOM,
             key = UUID.randomUUID().toString(),
@@ -625,7 +611,7 @@ internal class RegistraChaveEndpointTest(
         `when`(itauClient.buscaContaPorTipo(request.clientId, request.tipoDeConta.name))
             .thenReturn(HttpResponse.ok(dadosDaContaResponse()))
 
-        `when`(bcbClient.cadastraChaveBcb(bcbRequest))
+        `when`(bcbClient.cadastraChaveBcb(any()))
             .thenReturn(HttpResponse.created(bcbResponse))
 
         val response = grpcClient.registra(request)
@@ -633,9 +619,6 @@ internal class RegistraChaveEndpointTest(
         with(response) {
             assertNotNull(pixId)
             assertEquals(CLIENT_ID.toString(), clientId)
-//            spy(repository).save(any(ChavePix::class.java))
-            // TODO veridicar a chave RANDOM que foi gerada
-
         }
     }
 

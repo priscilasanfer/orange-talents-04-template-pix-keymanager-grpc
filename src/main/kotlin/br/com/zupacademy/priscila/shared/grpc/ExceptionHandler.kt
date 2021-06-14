@@ -25,7 +25,7 @@ interface ExceptionHandler<E: Exception> {
         constructor(sp: com.google.rpc.Status) : this(StatusProto.toStatusRuntimeException(sp))
 
         fun asRuntimeException(): StatusRuntimeException {
-            return status.asRuntimeException()
+            return status.asRuntimeException(metadata)
         }
     }
 }

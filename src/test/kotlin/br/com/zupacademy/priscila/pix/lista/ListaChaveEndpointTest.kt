@@ -27,16 +27,10 @@ internal class ListaChaveEndpointTest(
     val grpcClient: KeymanagerListaServiceGrpc.KeymanagerListaServiceBlockingStub,
 ) {
 
-    @BeforeEach
-    internal fun setUp() {
-        repository.deleteAll()
-    }
-
     @AfterEach
     fun cleanUp() {
         repository.deleteAll()
     }
-
 
     companion object {
         val CLIENTE_ID = UUID.randomUUID()
