@@ -1,25 +1,26 @@
 version: '3'
 services:
 
-  keymanagergrpc:
-    build:
-      dockerfile: Dockerfile
-      context: .
-    image: priscilasanfer/key-manager-grpc:latest
-    restart: on-failure
-    container_name: key-manager-grpc
-    ports:
-      - "50051:50051"
-    depends_on:
-      - postgres
-      - bcb
-      - erp-itau
-    environment:
-      BCB_URL: http://bcb:8082/api/v1/pix/keys
-      ITAU:URL: http://erp-itau:9091/api/v1/clientes
-      DB_USER: postgres
-      DB_PASSWORD: root
-      DB_URL: jdbc:postgresql://postgres/keymanager
+#  keymanagergrpc:
+#    build:
+#      dockerfile: Dockerfile
+#      context: .
+#    image: priscilasanfer/key-manager-grpc:latest
+#    restart: on-failure
+#    container_name: key-manager-grpc
+#    ports:
+#      - "50051:50051"
+#    depends_on:
+#      - postgres
+#      - bcb
+#      - erp-itau
+#    environment:
+#      BCB_URL: http://bcb:8082/api/v1/pix/keys
+#      ITAU_URL: http://erp-itau:9091/api/v1/clientes
+#      DB_USER: postgres
+#      DB_PASSWORD: root
+#      DB_URL: jdbc:postgresql://postgres:5432/keymanager
+#      DB_DIALECT: POSTGRES
 
   bcb:
     image: "public.ecr.aws/d8b2x5c9/orange-stack-sat-bcb-pix"

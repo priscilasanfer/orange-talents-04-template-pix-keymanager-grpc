@@ -16,6 +16,7 @@ repositories {
 }
 
 micronaut {
+    runtime("netty")
     testRuntime("junit5")
     processing {
         incremental(true)
@@ -49,6 +50,7 @@ dependencies {
     implementation("io.micronaut:micronaut-http-client")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
     implementation("io.micronaut.xml:micronaut-jackson-xml")
+    implementation("io.micronaut:micronaut-management")
 
     //Testes
     testImplementation("com.h2database:h2")

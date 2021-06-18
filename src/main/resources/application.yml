@@ -7,6 +7,14 @@ grpc:
     port: ${SERVER_PORT:50051}
     keep-alive-time: 1h
     max-inbound-message-size: 1024
+  health:
+    enabled: true
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
 
 datasources:
   default:
@@ -14,7 +22,7 @@ datasources:
     driverClassName: org.postgresql.Driver
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:root}
-    dialect: POSTGRES
+    dialect: ${DB_DIALECT:POSTGRES}
 
 jpa.default.properties.hibernate.hbm2ddl.auto: update
 jpa.default.properties.hibernate.show_sql: true

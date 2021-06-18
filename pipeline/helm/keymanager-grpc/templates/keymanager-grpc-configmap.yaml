@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orange-talents-04-template-pix-keymanager-grpc-configmap
+data:
+  DB_URL: jdbc:postgresql://localhost:5432/keymanager
+  DB_USER: postgres
+  DB_DIALECT: POSTGRES
+  BCB_URL: http://localhost:8082/api/v1/pix/keys
+  ITAU_URL: http://localhost:9091/api/v1/clientes
