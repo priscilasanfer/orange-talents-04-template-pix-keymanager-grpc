@@ -1,4 +1,4 @@
-package br.com.zup.edu.shared.grpc.handlers
+package br.com.zupacademy.priscila.shared.grpc.handlers
 
 import br.com.zupacademy.priscila.shared.grpc.ExceptionHandler
 import br.com.zupacademy.priscila.shared.grpc.ExceptionHandler.StatusWithDetails

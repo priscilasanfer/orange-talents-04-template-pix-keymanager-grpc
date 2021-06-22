@@ -25,3 +25,10 @@ comandos: https://www.youtube.com/watch?v=UfCPMRV9J-c
   helm uninstall keymanager-grpc  
   kubectl get pod -n dev  
   kubectl describe pod POD_NAME -n dev  
+  
+
+Habilitar log no client:
+
+coloca isso no logback.xml pra logar o client
+
+<logger name="io.micronaut.http.client" level="TRACE"/>
