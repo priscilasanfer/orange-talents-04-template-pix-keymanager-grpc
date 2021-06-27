@@ -6,5 +6,5 @@ data:
   DB_URL: jdbc:postgresql://localhost:5432/keymanager
   DB_USER: postgres
   DB_DIALECT: POSTGRES
-  BCB_URL: http://localhost:8082/api/v1/pix/keys
-  ITAU_URL: http://localhost:9091/api/v1/clientes
+  BCB_URL: http://internal-abfe0883c77dd427ab0997441a62306b-1365683537.sa-east-1.elb.amazonaws.com/api/v1/pix/keys
+  ITAU_URL: http://internal-a0056f1bc61dd472ab8af70597036b6c-721953980.sa-east-1.elb.amazonaws.com/api/v1/clientes
